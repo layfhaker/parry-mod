@@ -1,0 +1,68 @@
+name: Publish to Thunderstore
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Package version (SemVer, e.g. 1.0.0). Empty uses manifest.json."
+        required: false
+        default: ""
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read version
+        id: ver
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          elif [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION=$(python3 -c "import json; print(json.load(open('manifest.json'))['version_number'])")
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Publishing version $VERSION"
+
+      - name: Stage Thunderstore package
+        run: |
+          mkdir -p dist
+          cp icon.png README.md CHANGELOG.md manifest.json package/RepoValuableParry.dll dist/
+          python3 - <<'PY'
+          import json, os
+          version = os.environ["VERSION"]
+          path = "dist/manifest.json"
+          with open(path, encoding="utf-8") as f:
+              data = json.load(f)
+          data["version_number"] = version
+          data["website_url"] = "https://github.com/layfhaker/parry-mod"
+          with open(path, "w", encoding="utf-8") as f:
+              json.dump(data, f, indent=2)
+              f.write("\n")
+          PY
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+
+      - name: Upload to Thunderstore
+        uses: GreenTF/upload-thunderstore-package@v4.3
+        with:
+          token: ${{ secrets.THUNDERSTORE_TOKEN }}
+          namespace: Avariiiprime
+          name: ValuableParry
+          description: Parry enemy melee and laser attacks with a held Valuable. Timing + coverage + sacrifice. No E = fully vanilla.
+          version: ${{ steps.ver.outputs.version }}
+          community: repo
+          path: dist
+          website: https://github.com/layfhaker/parry-mod
+          deps: BepInEx-BepInExPack@5.4.2100
+          categories: |
+            mods
+            misc
