@@ -60,6 +60,7 @@ jobs:
           description: Parry enemy melee and laser attacks with a held Valuable. Timing + coverage + sacrifice. No E = fully vanilla.
           version: ${{ steps.ver.outputs.version }}
           community: repo
+          repo: https://thunderstore.io
           path: dist
           website: https://github.com/layfhaker/parry-mod
           deps: BepInEx-BepInExPack@5.4.2100
