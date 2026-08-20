@@ -7,6 +7,7 @@ name = "ValuableParry"
 description = "Parry enemy melee and laser attacks with a held Valuable. Timing + coverage + sacrifice. No E = fully vanilla."
 websiteUrl = "https://github.com/layfhaker/parry-mod"
 containsNsfwContent = false
+versionNumber = "1.0.0"
 
 [package.dependencies]
 BepInEx-BepInExPack = "5.4.2100"
